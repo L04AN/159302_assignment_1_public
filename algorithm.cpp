@@ -125,7 +125,6 @@ string uc_explist(string const initialState, string const goalState, int& pathLe
 
             // --------------------------------------------------
             // 1. Strict Expanded List check
-            //
             // If this state has already been expanded, do not put it back into Q.
             // --------------------------------------------------
             if(expanded.find(nextState) != expanded.end()) {
@@ -142,7 +141,6 @@ string uc_explist(string const initialState, string const goalState, int& pathLe
 
                     // --------------------------------------------------
                     // A path to this state is already waiting in Q.
-                    //
                     // If the new path is shorter, remove the old search node and replace it with the new one.
                     // --------------------------------------------------
                     if(next->getGCost() < Q[i]->getGCost()) {
@@ -302,22 +300,65 @@ string aStar_ExpandedList(string const initialState, string const goalState, int
         }
 
         // --------------------------------------------------
-        // Helper for processing successors
+        // Add a successor to Q
         // --------------------------------------------------
         auto pushSuccessor = [&](Puzzle* next){
             string nextState = next->getString();
 
-            // Do not re-expand a state that is already in the Strict Expanded List
+            // --------------------------------------------------
+            // 1. Strict Expanded List check
+            // If this state has already been expanded, do not put it back into Q.
+            // --------------------------------------------------
             if(expanded.find(nextState) != expanded.end()) {
                 numOfAttemptedNodeReExpansions++;
                 delete next;
                 return;
             }
-            // Calculate A* values for this successor
+
+            // --------------------------------------------------
+            // 2. Calculate A* costs for this successor
+            // --------------------------------------------------
             next->updateHCost(heuristic);
             next->updateFCost();
+
+            // --------------------------------------------------
+            // 3. Check whether the same state is already in Q
+            // --------------------------------------------------
+            for(size_t i = 0; i < Q.size(); i++) {
+                if(Q[i]->getString() == nextState) {
+                    // A path to this state already exists in Q.
+                    // Keep only the path with the smaller g-cost.
+                    if(next->getGCost() < Q[i]->getGCost()) {
+                        Puzzle* oldNode = Q[i];
+                        // Replace the old node with the last element in the vector, then pop the last element.
+                        Q[i] = Q.back();
+                        Q.pop_back();
+                        delete oldNode;
+                        // Removing an arbitrary item breaks the heap ordering, so rebuild the heap.
+                        make_heap(Q.begin(), Q.end(), compareF);
+                        numOfDeletionsFromMiddleOfHeap++;
+                        // Insert new, shorter path
+                        Q.push_back(next);
+                        push_heap(Q.begin(), Q.end(), compareF);
+                    } else {
+                        // Existing path is equally good or better, so discard the new search node. 
+                        delete next;
+                    }
+                    // Duplicate  state found, so do not add it to Q.
+                    return;
+                }
+            }
+
+            // --------------------------------------------------  
+            // 4. State is not Expanded and not already in Q
+            // Add it normally
+            // --------------------------------------------------
             Q.push_back(next);
             push_heap(Q.begin(), Q.end(), compareF);
+
+            // --------------------------------------------------
+            // 5. Update max Q length
+            // --------------------------------------------------
             if((int)Q.size() > maxQLength) {
                 maxQLength = Q.size();
             }
