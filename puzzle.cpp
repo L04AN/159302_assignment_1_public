@@ -78,7 +78,7 @@ void Puzzle::updateHCost(heuristicFunction hFunction){
 }
 
 void Puzzle::updateFCost(){
-	//fCost = ?
+	fCost =  getGCost() + getHCost();
 }
 
 int Puzzle::getFCost(){
@@ -102,14 +102,40 @@ int Puzzle::h(heuristicFunction hFunction){
 	
 	switch(hFunction){
 		case misplacedTiles:			      
-				//place your implementation here	
-                h = numOfMisplacedTiles; 					
+				for(int i=0; i < 3; i++){
+					for(int j=0; j < 3; j++){
+						if(board[i][j] != 0 && 
+							board[i][j] != goalBoard[i][j]){
+							numOfMisplacedTiles++;
+						}
+					}
+				}
+				h = numOfMisplacedTiles; 					
 		        break;
 		         
 		case manhattanDistance:
-		        //place your implementation here
-		        
-		        h = sum; 					
+		        for(int i=0; i < 3; i++){
+					for(int j=0; j < 3; j++){
+
+						// Ingore the blank tile
+						if(board[i][j] == 0){
+							continue;
+						}
+						bool found = false;
+
+						// Find this tile's position
+						for(int goalRow=0; goalRow < 3 && !found; goalRow++){
+							for(int goalCol=0; goalCol < 3 && !found; goalCol++){
+								if(goalBoard[goalRow][goalCol] == board[i][j]){
+									sum += abs(i - goalRow) + abs(j - goalCol);
+									found = true;
+									break;
+								}
+							}
+						}
+					}
+				}
+				h = sum; 					
 		        break;         
 		           
 	};
@@ -140,10 +166,15 @@ string Puzzle::toString(){
 
 
 bool Puzzle::goalMatch(){
-	bool result=false;
-    
-    //this is incomplete...
-	return result;
+	for(int i=0; i < 3; i++){
+		for(int j=0; j < 3; j++){			    
+		    if(board[i][j] != goalBoard[i][j]){
+		    	return false;
+			}
+		} 
+  	}
+  
+  	return true;
 }
 
 bool Puzzle::canMoveLeft(){
