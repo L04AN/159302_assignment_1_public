@@ -1,7 +1,23 @@
+// Script to run the search algorithms on the five test cases
+
+/*
+for s in 123048765 346208175 143708652 743286051 185024367; do
+    ./search.out single_run uc_explist $s 123456780
+done
+
+for s in 123048765 346208175 143708652 743286051 185024367; do
+    ./search.out single_run astar_explist_misplacedtiles $s 123456780
+done
+
+for s in 123048765 346208175 143708652 743286051 185024367; do
+    ./search.out single_run astar_explist_manhattan $s 123456780
+done
+*/
 
 
 #include "algorithm.h"
 #include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
@@ -69,6 +85,7 @@ string uc_explist(string const initialState, string const goalState, int& pathLe
     // --------------------------------------------------------
     vector<Puzzle*> Q;
     unordered_set<string> expanded;
+    unordered_map<string, Puzzle*> qLookup;
     CompareGCost compareG;
 
 
@@ -77,6 +94,7 @@ string uc_explist(string const initialState, string const goalState, int& pathLe
     // --------------------------------------------------
     Puzzle* initialPuzzle = new Puzzle(initialState, goalState);
     Q.push_back(initialPuzzle);
+    qLookup[initialState] = initialPuzzle;
     make_heap(Q.begin(), Q.end(), compareG);
     maxQLength = 1;
 
@@ -90,7 +108,19 @@ string uc_explist(string const initialState, string const goalState, int& pathLe
         Puzzle* current = Q.back();
         Q.pop_back();
         string currentState = current->getString();
+        qLookup.erase(currentState);
         
+
+        // --------------------------------------------------
+        // Goal test
+        // - Goal nodes are returned, not expanded.
+        // --------------------------------------------------
+        if(current->goalMatch()) {
+            path = current->getPath();
+            pathLength = current->getPathLength();
+            delete current;
+            break;
+        }
 
         // --------------------------------------------------
         // Strict Expanded List check
@@ -105,18 +135,6 @@ string uc_explist(string const initialState, string const goalState, int& pathLe
         expanded.insert(currentState);
         numOfStateExpansions++;
 
-
-        // --------------------------------------------------
-        // Goal test
-        // --------------------------------------------------
-        if(current->goalMatch()) {
-            path = current->getPath();
-            pathLength = current->getPathLength();
-            delete current;
-            break;
-        }
-
-
         // --------------------------------------------------
         // Add a successor to Q
         // --------------------------------------------------
@@ -125,7 +143,7 @@ string uc_explist(string const initialState, string const goalState, int& pathLe
 
             // --------------------------------------------------
             // 1. Strict Expanded List check
-            // If this state has already been expanded, do not put it back into Q.
+            // - If this state has already been expanded, do not put it back into Q.
             // --------------------------------------------------
             if(expanded.find(nextState) != expanded.end()) {
                 numOfAttemptedNodeReExpansions++;
@@ -135,40 +153,49 @@ string uc_explist(string const initialState, string const goalState, int& pathLe
 
             // --------------------------------------------------
             // 2. Check whether the same state is already in Q
+            // - qLookup provides a fast hash-table lookup instead of scanning the entire heap.
             // --------------------------------------------------
-            for(size_t i = 0; i < Q.size(); i++) {
-                if(Q[i]->getString() == nextState) {
-
-                    // --------------------------------------------------
-                    // A path to this state is already waiting in Q.
-                    // If the new path is shorter, remove the old search node and replace it with the new one.
-                    // --------------------------------------------------
-                    if(next->getGCost() < Q[i]->getGCost()) {
-                        Puzzle* oldNode = Q[i];
-                        // Replace the deleted element with the final element in the heap vector.
-                        Q[i] = Q.back();
+            auto existing = qLookup.find(nextState);
+            if(existing != qLookup.end()) {
+                Puzzle* oldNode = existing->second;
+                // A path to this state already exists in Q.
+                // Keep only the path with the smaller g-cost.
+                if(next->getGCost() < oldNode->getGCost()){
+                    // Locate the old node inside the heap vector.
+                    // This linear search is only required when a shorter path has been found.
+                    auto oldPosition = find(Q.begin(), Q.end(), oldNode);
+                    if(oldPosition != Q.end()) {
+                        // Remove the old lookup entry first.
+                        qLookup.erase(existing);
+                        // Replace the old heap element with the last element in the vector, then pop the last element.
+                        *oldPosition = Q.back();
                         Q.pop_back();
                         delete oldNode;
-
-
-                        // Arbitrary removal breaks the heap ordering, so rebuild the heap.
+                        // Removing an arbitrary item breaks the heap ordering, so rebuild the heap.
                         make_heap(Q.begin(), Q.end(), compareG);
                         numOfDeletionsFromMiddleOfHeap++;
+                        // Insert new, shorter path
                         Q.push_back(next);
                         push_heap(Q.begin(), Q.end(), compareG);
+                        qLookup[nextState] = next;
                     } else {
+                        // Fallback:  The old node was not found in the heap, which should never happen.
                         delete next;
                     }
-                    return;
+                } else {
+                    // Existing path is equally good or better, so discard the new search node.
+                    delete next;                
                 }
+                return;
             }
 
             // --------------------------------------------------
-            // 3. State is not Expande and not already in Q
+            // 3. State is not expanded and not already in Q
             // Add it normally
             // --------------------------------------------------
             Q.push_back(next);
             push_heap(Q.begin(), Q.end(), compareG);
+            qLookup[nextState] = next;
 
             // --------------------------------------------------
             // 4. Update max Q length
@@ -195,7 +222,7 @@ string uc_explist(string const initialState, string const goalState, int& pathLe
             pushSuccessor(current->moveLeft());
         }
         delete current;
-    }
+        }
 
 
     // --------------------------------------------------
@@ -205,6 +232,7 @@ string uc_explist(string const initialState, string const goalState, int& pathLe
         delete p;
     }
     Q.clear();
+    qLookup.clear();
 
     // --------------------------------------------------------
     // Record execution time
@@ -276,6 +304,15 @@ string aStar_ExpandedList(string const initialState, string const goalState, int
         Q.pop_back();
         string currentState = current->getString();
 
+        // --------------------------------------------------
+        // Goal test 
+        // -------------------------------------------------
+        if(current->goalMatch()) {
+            path = current->getPath();
+            pathLength = current->getPathLength();
+            delete current;
+            break;
+        }
 
         // --------------------------------------------------
         // Strict Expanded List check
@@ -287,17 +324,6 @@ string aStar_ExpandedList(string const initialState, string const goalState, int
         }
         expanded.insert(currentState);
         numOfStateExpansions++;
-
-
-        // --------------------------------------------------
-        // Goal test 
-        // -------------------------------------------------
-        if(current->goalMatch()) {
-            path = current->getPath();
-            pathLength = current->getPathLength();
-            delete current;
-            break;
-        }
 
         // --------------------------------------------------
         // Add a successor to Q
@@ -330,9 +356,8 @@ string aStar_ExpandedList(string const initialState, string const goalState, int
                     // Keep only the path with the smaller g-cost.
                     if(next->getGCost() < Q[i]->getGCost()) {
                         Puzzle* oldNode = Q[i];
-                        // Replace the old node with the last element in the vector, then pop the last element.
-                        Q[i] = Q.back();
-                        Q.pop_back();
+                        // Remove the old node from its current position in Q.
+                        Q.erase(Q.begin() + i);
                         delete oldNode;
                         // Removing an arbitrary item breaks the heap ordering, so rebuild the heap.
                         make_heap(Q.begin(), Q.end(), compareF);
