@@ -18,7 +18,7 @@ private:
     int pathLength;
     int hCost;
     int fCost;
-    int depth; 
+    //int depth; 
         
     int goalBoard[3][3];
     
@@ -39,9 +39,9 @@ public:
     int h(heuristicFunction hFunction);   
     void updateFCost(); 
     void updateHCost(heuristicFunction hFunction);
-    void updateDepth(){
-         depth++;
-    }        
+    //void updateDepth(){
+    //     depth++;
+    //}        
           
      
     bool goalMatch();
@@ -58,10 +58,10 @@ public:
 
 //----------------------------------------
 //these functions will be useful for Progressive Deepening Search    
-     bool canMoveLeft(int maxDepth);
-     bool canMoveDown(int maxDepth);
-     bool canMoveRight(int maxDepth);
-     bool canMoveUp(int maxDepth);   
+     //bool canMoveLeft(int maxDepth);
+     //bool canMoveDown(int maxDepth);
+     //bool canMoveRight(int maxDepth);
+     //bool canMoveUp(int maxDepth);   
 //----------------------------------------
       
     Puzzle * moveUp();
@@ -72,8 +72,8 @@ public:
      
     const string getPath();
     
-    void setDepth(int d);
-    int getDepth();
+    //void setDepth(int d);
+    //int getDepth();
     
     int getPathLength();
     int getFCost();

@@ -1,6 +1,5 @@
 #include "puzzle.h"
 #include  <cmath>
-#include  <assert.h>
 
 using namespace std;
 
@@ -23,7 +22,7 @@ Puzzle::Puzzle(const Puzzle &p) : path(p.path){
 	hCost = p.hCost;
 	fCost = p.fCost;	
 	strBoard = toString(); //uses the board contents to generate the string equivalent
-	depth = p.depth;
+	//depth = p.depth;
 	
 }
 
@@ -60,18 +59,18 @@ Puzzle::Puzzle(string const elements, string const goal){
 	pathLength=0;
 	hCost = 0;
 	fCost = 0;
-	depth = 0;
+	//depth = 0;
 	strBoard = toString();	
 }
 
 
-void Puzzle::setDepth(int d){
-	depth = d;
-}
+//void Puzzle::setDepth(int d){
+//	depth = d;
+//}
 
-int Puzzle::getDepth(){
-	return depth;
-}
+//int Puzzle::getDepth(){
+//	return depth;
+//}
 
 void Puzzle::updateHCost(heuristicFunction hFunction){
 	hCost = h(hFunction);
@@ -147,14 +146,11 @@ int Puzzle::h(heuristicFunction hFunction){
 
 //converts board state into its string representation
 string Puzzle::toString(){
-  int n;
   string stringPath;
   
-  n=0;
   for(int i=0; i < 3; i++){
 		for(int j=0; j < 3; j++){			    
 		    stringPath.insert(stringPath.end(), board[i][j] + '0');
-		    n++;
 		} 
   }
   
@@ -205,6 +201,7 @@ bool Puzzle::canMoveDown(){
 	
 }
 
+/*
 ///////////////////////////////////////////////
 //these functions will be useful for Progressive Deepening Search 
 
@@ -237,6 +234,7 @@ bool Puzzle::canMoveDown(int maxDepth){
 }
 
 ///////////////////////////////////////////////
+*/
 
 Puzzle *Puzzle::moveLeft(){
 	
@@ -252,7 +250,7 @@ Puzzle *Puzzle::moveLeft(){
 		
 		p->path = path + "L";
 		p->pathLength = pathLength + 1;  
-		p->depth = depth + 1; 
+		//p->depth = depth + 1; 
 		
 		
 	}
@@ -278,7 +276,7 @@ Puzzle *Puzzle::moveRight(){
 		p->path = path + "R";
 		p->pathLength = pathLength + 1; 
      	
-		p->depth = depth + 1;
+		//p->depth = depth + 1;
 		
 	}
 	
@@ -304,7 +302,7 @@ Puzzle *Puzzle::moveUp(){
 		p->path = path + "U";
 		p->pathLength = pathLength + 1;  
 	
-		p->depth = depth + 1;
+		//p->depth = depth + 1;
 		
 	}
 	p->strBoard = p->toString();
@@ -328,7 +326,7 @@ Puzzle *Puzzle::moveDown(){
 		p->path = path + "D";
 		p->pathLength = pathLength + 1;  
 		
-		p->depth = depth + 1;
+		//p->depth = depth + 1;
 		
 	}
 	p->strBoard = p->toString();	

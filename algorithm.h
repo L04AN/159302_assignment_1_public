@@ -10,7 +10,7 @@
 #include <cstring>
 #include <vector>
 
-#include "puzzle.h" //optional only, may be removed
+#include "puzzle.h"
 
 
 /////////////////////////////////////////////////////

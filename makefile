@@ -31,8 +31,8 @@ else
 endif
 
 # Find all source files (.cpp) and header files (.h)
-SRCS := $(wildcard *.cpp) $(wildcard */*.cpp)
-HDRS := $(wildcard *.h) $(wildcard */*.h)
+SRCS := main.cpp graphics.cpp puzzle.cpp algorithm.cpp
+HDRS := graphics.h puzzle.h algorithm.h
 
 # Create object file names based on source file names
 OBJS := $(SRCS:.cpp=.o)
