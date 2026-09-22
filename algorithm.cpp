@@ -1,6 +1,11 @@
-// Script to run the search algorithms on the five test cases
-
 /*
+159302 - Artificial Intelligence
+Logan Alexander, 21012483
+*/
+
+// Test Examples
+/*
+{
 for s in 123048765 346208175 143708652 743286051 185024367; do
     ./search.out single_run uc_explist $s 123456780
 done
@@ -12,8 +17,9 @@ done
 for s in 123048765 346208175 143708652 743286051 185024367; do
     ./search.out single_run astar_explist_manhattan $s 123456780
 done
-*/
+} | tee lecturer_sample_comparison.txt
 
+*/
 
 #include "algorithm.h"
 #include <unordered_set>
@@ -27,7 +33,7 @@ using namespace std;
 // Uniform Cost Search Comparator
 // C++ Standard Library heap is max by default.
 // 
-// Returns true when 'a' has a larger g-cpst than 'b', 
+// Returns true when 'a' has a larger g-cost than 'b', 
 // which makes the smallest g-cost rise to the top of the heap.
 ////////////////////////////////////////////////////////////////////////////////////////////
 struct CompareGCost {
@@ -276,6 +282,7 @@ string aStar_ExpandedList(string const initialState, string const goalState, int
     // --------------------------------------------------------
     vector<Puzzle*> Q;
     unordered_set<string> expanded;
+    unordered_map<string, Puzzle*> qLookup;
     CompareFCost compareF;
 
 
@@ -289,6 +296,7 @@ string aStar_ExpandedList(string const initialState, string const goalState, int
     initialPuzzle->updateFCost();
 
     Q.push_back(initialPuzzle);
+    qLookup[initialState] = initialPuzzle;
     make_heap(Q.begin(), Q.end(), compareF);
     maxQLength = 1;
 
@@ -303,6 +311,8 @@ string aStar_ExpandedList(string const initialState, string const goalState, int
         Puzzle* current = Q.back();
         Q.pop_back();
         string currentState = current->getString();
+        // This state is no longer waiting in Q.
+        qLookup.erase(currentState);
 
         // --------------------------------------------------
         // Goal test 
@@ -342,37 +352,50 @@ string aStar_ExpandedList(string const initialState, string const goalState, int
             }
 
             // --------------------------------------------------
-            // 2. Calculate A* costs for this successor
+            // 2. Calculate A* costs
             // --------------------------------------------------
             next->updateHCost(heuristic);
             next->updateFCost();
 
             // --------------------------------------------------
             // 3. Check whether the same state is already in Q
+            // - qLookup avoids scanning the entire heap just to determine whether the state exists.
             // --------------------------------------------------
-            for(size_t i = 0; i < Q.size(); i++) {
-                if(Q[i]->getString() == nextState) {
-                    // A path to this state already exists in Q.
-                    // Keep only the path with the smaller g-cost.
-                    if(next->getGCost() < Q[i]->getGCost()) {
-                        Puzzle* oldNode = Q[i];
-                        // Remove the old node from its current position in Q.
-                        Q.erase(Q.begin() + i);
-                        delete oldNode;
-                        // Removing an arbitrary item breaks the heap ordering, so rebuild the heap.
-                        make_heap(Q.begin(), Q.end(), compareF);
-                        numOfDeletionsFromMiddleOfHeap++;
-                        // Insert new, shorter path
-                        Q.push_back(next);
-                        push_heap(Q.begin(), Q.end(), compareF);
-                    } else {
-                        // Existing path is equally good or better, so discard the new search node. 
-                        delete next;
-                    }
-                    // Duplicate  state found, so do not add it to Q.
-                    return;
+            auto existing = qLookup.find(nextState);
+            if(existing != qLookup.end()) {
+                Puzzle* oldNode = existing->second;
+                // Same state already exists in Q.
+                // Keep only the path with the smaller g-cost.
+                if(next->getGCost() < oldNode->getGCost()) {
+                    // Puzzle pointer must be removed, find position in vector.
+                    // Search happens only when replacement is needed.
+                auto oldPosition =
+                    find(Q.begin(), Q.end(), oldNode);
+                if(oldPosition != Q.end()) {
+                    // Remove old state from the lookup table.
+                    qLookup.erase(existing);
+                    // Keep erase() here rather than replacing the element with Q.back().                    //
+                    // This preserves the vector ordering behaviour.
+                    Q.erase(oldPosition);
+                    delete oldNode;
+                    // Arbitrary removal invalidates the heap, so rebuild it using the A* comparator.
+                    make_heap(Q.begin(), Q.end(), compareF);
+                    numOfDeletionsFromMiddleOfHeap++;
+                    // Insert the new, shorter path.
+                    Q.push_back(next);
+                    push_heap(Q.begin(), Q.end(), compareF);
+                    qLookup[nextState] = next;
+                } else {
+                    // Fallback: This should never happen if Q and qLookup remain consistent.
+                    qLookup.erase(existing);
+                    delete next;
                 }
+            } else {
+                // Existing path is equally good or better.
+                delete next;
             }
+            return;
+        }
 
             // --------------------------------------------------  
             // 4. State is not Expanded and not already in Q
@@ -380,6 +403,7 @@ string aStar_ExpandedList(string const initialState, string const goalState, int
             // --------------------------------------------------
             Q.push_back(next);
             push_heap(Q.begin(), Q.end(), compareF);
+            qLookup[nextState] = next;
 
             // --------------------------------------------------
             // 5. Update max Q length
@@ -414,6 +438,7 @@ string aStar_ExpandedList(string const initialState, string const goalState, int
         delete p;
     }
     Q.clear();
+    qLookup.clear();
 
     // --------------------------------------------------------
     // Record execution time

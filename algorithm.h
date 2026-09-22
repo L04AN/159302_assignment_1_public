@@ -17,7 +17,7 @@
 
 //Function prototypes
 
-string uc_explist(string const initialState, string const goalState, int& pathLength, int &numOfStateExpansions, int& maxQLength,
+std::string uc_explist(std::string const initialState, std::string const goalState, int& pathLength, int &numOfStateExpansions, int& maxQLength,
                           float &actualRunningTime, int &numOfDeletionsFromMiddleOfHeap, int &numOfLocalLoopsAvoided, int &numOfAttemptedNodeReExpansions);
 
 
