@@ -1,6 +1,5 @@
 #include "puzzle.h"
 #include  <cmath>
-#include  <assert.h>
 
 using namespace std;
 
@@ -23,7 +22,7 @@ Puzzle::Puzzle(const Puzzle &p) : path(p.path){
 	hCost = p.hCost;
 	fCost = p.fCost;	
 	strBoard = toString(); //uses the board contents to generate the string equivalent
-	depth = p.depth;
+	//depth = p.depth;
 	
 }
 
@@ -60,25 +59,25 @@ Puzzle::Puzzle(string const elements, string const goal){
 	pathLength=0;
 	hCost = 0;
 	fCost = 0;
-	depth = 0;
+	//depth = 0;
 	strBoard = toString();	
 }
 
 
-void Puzzle::setDepth(int d){
-	depth = d;
-}
+//void Puzzle::setDepth(int d){
+//	depth = d;
+//}
 
-int Puzzle::getDepth(){
-	return depth;
-}
+//int Puzzle::getDepth(){
+//	return depth;
+//}
 
 void Puzzle::updateHCost(heuristicFunction hFunction){
 	hCost = h(hFunction);
 }
 
 void Puzzle::updateFCost(){
-	//fCost = ?
+	fCost =  getGCost() + getHCost();
 }
 
 int Puzzle::getFCost(){
@@ -102,14 +101,40 @@ int Puzzle::h(heuristicFunction hFunction){
 	
 	switch(hFunction){
 		case misplacedTiles:			      
-				//place your implementation here	
-                h = numOfMisplacedTiles; 					
+				for(int i=0; i < 3; i++){
+					for(int j=0; j < 3; j++){
+						if(board[i][j] != 0 && 
+							board[i][j] != goalBoard[i][j]){
+							numOfMisplacedTiles++;
+						}
+					}
+				}
+				h = numOfMisplacedTiles; 					
 		        break;
 		         
 		case manhattanDistance:
-		        //place your implementation here
-		        
-		        h = sum; 					
+		        for(int i=0; i < 3; i++){
+					for(int j=0; j < 3; j++){
+
+						// Ingore the blank tile
+						if(board[i][j] == 0){
+							continue;
+						}
+						bool found = false;
+
+						// Find this tile's position
+						for(int goalRow=0; goalRow < 3 && !found; goalRow++){
+							for(int goalCol=0; goalCol < 3 && !found; goalCol++){
+								if(goalBoard[goalRow][goalCol] == board[i][j]){
+									sum += abs(i - goalRow) + abs(j - goalCol);
+									found = true;
+									break;
+								}
+							}
+						}
+					}
+				}
+				h = sum; 					
 		        break;         
 		           
 	};
@@ -121,14 +146,11 @@ int Puzzle::h(heuristicFunction hFunction){
 
 //converts board state into its string representation
 string Puzzle::toString(){
-  int n;
   string stringPath;
   
-  n=0;
   for(int i=0; i < 3; i++){
 		for(int j=0; j < 3; j++){			    
 		    stringPath.insert(stringPath.end(), board[i][j] + '0');
-		    n++;
 		} 
   }
   
@@ -140,10 +162,15 @@ string Puzzle::toString(){
 
 
 bool Puzzle::goalMatch(){
-	bool result=false;
-    
-    //this is incomplete...
-	return result;
+	for(int i=0; i < 3; i++){
+		for(int j=0; j < 3; j++){			    
+		    if(board[i][j] != goalBoard[i][j]){
+		    	return false;
+			}
+		} 
+  	}
+  
+  	return true;
 }
 
 bool Puzzle::canMoveLeft(){
@@ -174,6 +201,7 @@ bool Puzzle::canMoveDown(){
 	
 }
 
+/*
 ///////////////////////////////////////////////
 //these functions will be useful for Progressive Deepening Search 
 
@@ -206,6 +234,7 @@ bool Puzzle::canMoveDown(int maxDepth){
 }
 
 ///////////////////////////////////////////////
+*/
 
 Puzzle *Puzzle::moveLeft(){
 	
@@ -221,7 +250,7 @@ Puzzle *Puzzle::moveLeft(){
 		
 		p->path = path + "L";
 		p->pathLength = pathLength + 1;  
-		p->depth = depth + 1; 
+		//p->depth = depth + 1; 
 		
 		
 	}
@@ -247,7 +276,7 @@ Puzzle *Puzzle::moveRight(){
 		p->path = path + "R";
 		p->pathLength = pathLength + 1; 
      	
-		p->depth = depth + 1;
+		//p->depth = depth + 1;
 		
 	}
 	
@@ -273,7 +302,7 @@ Puzzle *Puzzle::moveUp(){
 		p->path = path + "U";
 		p->pathLength = pathLength + 1;  
 	
-		p->depth = depth + 1;
+		//p->depth = depth + 1;
 		
 	}
 	p->strBoard = p->toString();
@@ -297,7 +326,7 @@ Puzzle *Puzzle::moveDown(){
 		p->path = path + "D";
 		p->pathLength = pathLength + 1;  
 		
-		p->depth = depth + 1;
+		//p->depth = depth + 1;
 		
 	}
 	p->strBoard = p->toString();	

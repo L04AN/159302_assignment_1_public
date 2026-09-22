@@ -248,7 +248,7 @@ void AnimateSolution(string const initialState, string const goalState, string p
 	}
 	
 	Puzzle *p = new Puzzle(initialState, goalState);
-    Puzzle *nextState;
+    Puzzle *nextState = nullptr;
 	
 	string strState;
 		
@@ -257,7 +257,7 @@ void AnimateSolution(string const initialState, string const goalState, string p
 	
 	cout << "--------------------------------------------------------------------" << endl;
 	      
-	for(int i=0; i < path.length(); i++){
+	for(size_t i = 0; i < path.length(); i++){
 		
 	   cout << endl << "Step #" << step << ")  ";
 	   switch(path[i]){
@@ -296,7 +296,7 @@ void run_all_experiments() {
     int num_of_init_states = sizeof(list_of_initialStates) / sizeof(list_of_initialStates[0]);
 
     int pathLength = 0;
-    int depth = 0;
+    //int depth = 0;
     int numOfStateExpansions = 0;
     int maxQLength = 0;
     int numOfDeletionsFromMiddleOfHeap = 0;
@@ -316,7 +316,7 @@ void run_all_experiments() {
         string path;
         path.clear();
         pathLength = 0;
-        depth = 0;
+        //depth = 0;
         numOfStateExpansions = 0;
         maxQLength = 0;
         numOfDeletionsFromMiddleOfHeap = 0;
@@ -348,7 +348,7 @@ void run_all_experiments() {
         string path;
         path.clear();
         pathLength = 0;
-        depth = 0;
+        //depth = 0;
         numOfStateExpansions = 0;
         maxQLength = 0;
         numOfDeletionsFromMiddleOfHeap = 0;
@@ -380,7 +380,7 @@ void run_all_experiments() {
         string path;
         path.clear();
         pathLength = 0;
-        depth = 0;
+        //depth = 0;
         numOfStateExpansions = 0;
         maxQLength = 0;
         numOfDeletionsFromMiddleOfHeap = 0;
@@ -413,7 +413,7 @@ void run_uc_experiments() {
     int num_of_init_states = sizeof(list_of_initialStates) / sizeof(list_of_initialStates[0]);
 
     int pathLength = 0;
-    int depth = 0;
+    //int depth = 0;
     int numOfStateExpansions = 0;
     int maxQLength = 0;
     int numOfDeletionsFromMiddleOfHeap = 0;
@@ -432,7 +432,7 @@ void run_uc_experiments() {
         string path;
         path.clear();
         pathLength = 0;
-        depth = 0;
+        //int depth = 0;
         numOfStateExpansions = 0;
         maxQLength = 0;
         numOfDeletionsFromMiddleOfHeap = 0;
@@ -465,7 +465,7 @@ void run_astar_manhattan_experiments() {
     int num_of_init_states = sizeof(list_of_initialStates) / sizeof(list_of_initialStates[0]);
 
     int pathLength = 0;
-    int depth = 0;
+    //int depth = 0;
     int numOfStateExpansions = 0;
     int maxQLength = 0;
     int numOfDeletionsFromMiddleOfHeap = 0;
@@ -484,7 +484,7 @@ void run_astar_manhattan_experiments() {
             string path;
             path.clear();
             pathLength = 0;
-            depth = 0;
+            //depth = 0;
             numOfStateExpansions = 0;
             maxQLength = 0;
             numOfDeletionsFromMiddleOfHeap = 0;
@@ -517,7 +517,7 @@ void run_astar_misplaced_tiles_experiments() {
     int num_of_init_states = sizeof(list_of_initialStates) / sizeof(list_of_initialStates[0]);
 
     int pathLength = 0;
-    int depth = 0;
+    //int depth = 0;
     int numOfStateExpansions = 0;
     int maxQLength = 0;
     int numOfDeletionsFromMiddleOfHeap = 0;
@@ -536,7 +536,7 @@ void run_astar_misplaced_tiles_experiments() {
         string path;
         path.clear();
         pathLength = 0;
-        depth = 0;
+        //depth = 0;
         numOfStateExpansions = 0;
         maxQLength = 0;
         numOfDeletionsFromMiddleOfHeap = 0;
@@ -592,7 +592,7 @@ int main( int argc, char* argv[] ){
     string initialState;
     string goalState;
 
-    if (argc > 3) {
+    if (argc >= 5) {
         initialState = string(argv[3]);
         goalState = string(argv[4]);
 
@@ -603,7 +603,7 @@ int main( int argc, char* argv[] ){
     
 
 	int pathLength=0;
-	int depth=0;
+	//int depth=0;
     int numOfStateExpansions=0;	
 	int maxQLength=0;
     int numOfDeletionsFromMiddleOfHeap=0;
